@@ -7,6 +7,12 @@
 ## 2. Date Range
 * [To be filled once dataset is finalized]
 
+## Number of Records: 
+* [To be filled once dataset is finalized]
+
+## Terms/Licence: 
+* [To be filled once dataset is finalized]
+
 ## 3. Format & Features
 * **Format:** CSV
 * **Price Features:** Open, High, Low, Close, Volume (OHLCV).

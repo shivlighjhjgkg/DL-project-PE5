@@ -6,6 +6,3 @@
 | *A Comparison of LSTMs and Attention Mechanisms for Forecasting Financial Time Series (Hollis et al., 2018)* | Compared a standard LSTM sequence network against an LSTM enhanced with an attention mechanism for stock forecasting. | Five specific company stocks from Kaggle's Two Sigma financial dataset. | The attention-enhanced LSTM outperformed the standard LSTM, achieving up to 60% directional accuracy on the test stocks. | Directly validates our core project setup, confirming that adding attention to the standard LSTM baseline should improve our trading metrics. |
 | *Attention Is All You Need (Vaswani et al., 2017)* | Introduced the Transformer architecture, which completely replaced sequential RNNs with multi-head self-attention mechanisms. | WMT 2014 English-to-German and English-to-French machine translation datasets. | Achieved state-of-the-art accuracy while drastically reducing model training time through parallel computation. | Provides the foundational mathematical theory for the multi-head self-attention mechanism, which is also the underlying architecture powering FinBERT. |
 
-**Notes:** 
-* Summarize in your own words. Do not copy/paste abstracts. 
-* Verify every citation before adding it here.

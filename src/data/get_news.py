@@ -47,7 +47,7 @@ def clean_news(input_file=INPUT_FILE, output_file=OUTPUT_FILE):
     )
 
     cleaned = cleaned.sort_values(
-        ["Date", "Headline"]
+        ["Date"]
     ).reset_index(drop=True)
 
     output_file.parent.mkdir(parents=True, exist_ok=True)

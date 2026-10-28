@@ -1,0 +1,26 @@
+{
+  "model_name": "MLP Baseline Model",
+  "tag": "mlp",
+  "member_owner": "Priyanshu Singh",
+  "architecture": "Multi-Layer Perceptron (Dense 64 -> 32 -> 16 -> 1, L2=0.001, Dropout)",
+  "input_features": [
+    "Close",
+    "Sentiment"
+  ],
+  "use_sentiment": true,
+  "n_features": 2,
+  "samples_total": 480,
+  "samples_train": 288,
+  "samples_val": 96,
+  "samples_test": 96,
+  "sequence_length": 10,
+  "mae": 388.50039743822686,
+  "rmse": 462.43982703958227,
+  "mape_pct": 3.229658706060944,
+  "r2": 0.5056102807261815,
+  "directional_accuracy_pct": 44.70588235294118,
+  "strategy_return_pct": -1.7498076723022282,
+  "buy_hold_return_pct": -5.667973769923607,
+  "sharpe_ratio": -0.03430210714658153,
+  "model_path": "C:\\Users\\Dell\\Desktop\\proj\\DL-project-PE5\\models\\mlp_model.keras"
+}

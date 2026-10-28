@@ -1,0 +1,7 @@
+{
+    "model": "Attention-BiLSTM",
+    "MAE": 316.94,
+    "RMSE": 389.04,
+    "MAPE": 2.61,
+    "directional_accuracy_pct": 51.58
+}

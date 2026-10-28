@@ -1,4 +1,4 @@
-﻿"""
+"""
 MLP (Multi-Layer Perceptron) Baseline Trading Model
 ===================================================
 Contribution: Baseline Deep Neural Network Architecture
@@ -35,7 +35,9 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SRC_DIR)
 
 STOCK_PATH = os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv')) else 'stock_price.csv'
-SENTIMENT_PATH = os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv')) else 'sentiment.csv'
+SENTIMENT_PATH = os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment_new.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment_new.csv')) else (
+    os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv')) else 'sentiment_new.csv'
+)
 MODEL_SAVE_PATH = os.path.join(PROJECT_ROOT, 'models', 'mlp_model.keras') if os.path.exists(os.path.join(PROJECT_ROOT, 'models')) else 'mlp_model.keras'
 API_MODEL_PATH = os.path.join(PROJECT_ROOT, 'api', 'mlp_model.keras')
 PLOT_SAVE_PATH = os.path.join(PROJECT_ROOT, 'results', 'mlp_model_results.png') if os.path.exists(os.path.join(PROJECT_ROOT, 'results')) else 'mlp_model_results.png'

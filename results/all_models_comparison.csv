@@ -1,0 +1,6 @@
+Model,Member Owner,Architecture Summary,MAE ($),RMSE ($),MAPE (%),R²,Direction Acc (%),Strategy Return (%),Buy & Hold (%),Sharpe Ratio,Win Rate (%),Max Drawdown (%)
+MLP Baseline,Priyanshu Singh (230911412),"Dense 64->32->16->1 (ReLU, L2, Dropout)",375.81,456.12,3.13,0.519,38.82,-6.4,-5.67,-0.52,51.67,-13.52
+Standard LSTM,Shivli Dimri (230953114),"Stacked LSTM 32->16 (Price-only, L2, Dropout)",439.05,529.56,3.61,0.3517,43.53,2.25,-5.67,0.38,54.35,-11.81
+FinBERT-LSTM,Dakshayani Sharma (230911066),Multimodal LSTM 32->16 + Sentiment input,491.76,587.65,4.09,0.2017,44.71,6.56,-5.67,0.82,54.9,-11.81
+Attention-BiLSTM,Prajika Saini (230953106),BiLSTM 32->16 + Attention + Residual Skips,416.53,510.47,3.48,0.3976,48.24,-2.98,-5.67,-0.15,53.23,-13.52
+Quantitative Ensemble,Joint Team Model,"Weighted Blend (45% Attn-BiLSTM, 35% FinBERT-LSTM, 20% MLP)",430.98,521.61,3.6,0.371,48.24,-3.54,-5.67,-0.22,51.79,-11.81

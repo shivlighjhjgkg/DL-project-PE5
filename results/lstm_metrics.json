@@ -1,0 +1,23 @@
+{
+  "model_name": "Standard LSTM",
+  "member_owner": "Shivli Dimri (230953114)",
+  "architecture": "Stacked LSTM 32 -> 16 (Price-only, L2=0.001, Dropout)",
+  "input_features": [
+    "Close"
+  ],
+  "n_features": 1,
+  "sequence_length": 10,
+  "samples_train": 288,
+  "samples_val": 96,
+  "samples_test": 96,
+  "mae": 439.04751090116287,
+  "rmse": 529.5564295062635,
+  "mape_pct": 3.6104863608703663,
+  "r2": 0.35168889377745527,
+  "directional_accuracy_pct": 43.529411764705884,
+  "strategy_return_pct": 2.249989849142753,
+  "buy_hold_return_pct": -5.667973769923607,
+  "sharpe_ratio": 0.3821735883415546,
+  "win_rate_pct": 29.411764705882355,
+  "model_path": "/Users/dakshayani/DL-project-PE5/models/lstm_model.keras"
+}

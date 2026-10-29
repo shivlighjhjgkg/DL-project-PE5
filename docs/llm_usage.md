@@ -34,4 +34,3 @@ All model implementations, architectural designs, experimental metrics, plots, a
 
 ## 3. Human Authorship & Verification Guarantee
 - **No Fabricated Data or Metrics:** Every metric reported in the final comparison table (MAE, RMSE, MAPE, $R^2$, Directional Accuracy, Strategy Return, Sharpe Ratio, Win Rate) was calculated programmatically from model inference over the unseen NASDAQ-100 test set (`2022-05-20` to `2022-09-29`).
-- **Defensibility in Viva:** Each team member has individually designed and validated their assigned model code and is fully prepared to defend the architecture, mathematics, and empirical results during the in-person presentation and Q&A.

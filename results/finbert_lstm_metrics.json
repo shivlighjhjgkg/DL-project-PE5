@@ -1,0 +1,27 @@
+{
+  "model_name": "FinBERT-LSTM Fusion",
+  "tag": "finbert_lstm",
+  "member_owner": "Dakshayani Sharma (230911066)",
+  "architecture": "Stacked LSTM 32 -> 16 (2 features, L2=0.001, Dropout)",
+  "input_features": [
+    "Close",
+    "Sentiment"
+  ],
+  "use_sentiment": true,
+  "n_features": 2,
+  "samples_total": 480,
+  "samples_train": 288,
+  "samples_val": 96,
+  "samples_test": 96,
+  "sequence_length": 10,
+  "mae": 450.82779569404096,
+  "rmse": 555.8827993577914,
+  "mape_pct": 3.7378608386421446,
+  "r2": 0.28562632411674826,
+  "directional_accuracy_pct": 45.88235294117647,
+  "strategy_return_pct": 0.3593840572262863,
+  "buy_hold_return_pct": -5.667973769923607,
+  "sharpe_ratio": 0.17619089703882285,
+  "win_rate_pct": 29.411764705882355,
+  "model_path": "/Users/dakshayani/DL-project-PE5/models/finbert_lstm_model.keras"
+}

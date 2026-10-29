@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📈 FinBERT-LSTM Quantitative Trading System
+# FinBERT-LSTM Quantitative Trading System
 ### Multi-Modal Deep Learning for Stock Price Forecasting & Sentiment-Driven Algorithmic Trading
 
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -18,7 +18,7 @@
 
 </div>
 
-## 📌 Executive Summary
+## Executive Summary
 
 Financial time-series forecasting presents profound challenges due to non-stationarity, low signal-to-noise ratio, and shifting macroeconomic regimes. While traditional quantitative models rely exclusively on historical price movements, market prices are fundamentally driven by both quantitative dynamics and qualitative investor sentiment.
 
@@ -26,7 +26,7 @@ This project delivers an end-to-end **Multi-Modal Deep Learning Trading System**
 
 ---
 
-## 👥 Team 12 Members & Contribution Matrix
+## Team 12 Members & Contribution Matrix
 
 | Member Name | Registration No. | Architectural Responsibility & Focus Area | Pull Request |
 |:---|:---:|:---|:---:|
@@ -38,7 +38,7 @@ This project delivers an end-to-end **Multi-Modal Deep Learning Trading System**
 
 ---
 
-## 🏗️ End-to-End System Architecture
+## End-to-End System Architecture
 
 ```mermaid
 flowchart TD
@@ -79,7 +79,7 @@ flowchart TD
 
 ---
 
-## 📊 Comprehensive Empirical Benchmark
+## Comprehensive Empirical Benchmark
 
 All models were evaluated on the **identical out-of-sample test partition** (May 20, 2022 to September 29, 2022 — 86 trading days) during an aggressive bear market drawdown:
 
@@ -99,7 +99,7 @@ All models were evaluated on the **identical out-of-sample test partition** (May
 
 ---
 
-## 📈 Visual Benchmark Gallery
+## Visual Benchmark Gallery
 
 <div align="center">
 
@@ -116,16 +116,16 @@ All models were evaluated on the **identical out-of-sample test partition** (May
 
 ---
 
-## 💻 Interactive Live Dashboard & FastAPI REST Service
+## Interactive Live Dashboard & FastAPI REST Service
 
 The production service (`api/app.py`) provides an interactive algorithmic trading simulation alongside low-latency inference endpoints:
 
 - **5 Real-Time Stat Cards:**
-  - 💼 **Portfolio Value:** Total equity with live percentage return.
-  - 🏷️ **Latest Price:** Actual NASDAQ-100 close price for the streaming date.
-  - 🪄 **Model Prediction:** AI forecasted next-day close price and delta.
-  - 🤖 **Trading Signal:** Real-time badge (`BUY`, `SELL`, `HOLD`) with FinBERT score.
-  - 🏆 **Backtest Metrics:** Out-of-sample Sharpe ratio, win rate, and total trades.
+  - **Portfolio Value:** Total equity with live percentage return.
+  - **Latest Price:** Actual NASDAQ-100 close price for the streaming date.
+  - **Model Prediction:** AI forecasted next-day close price and delta.
+  - **Trading Signal:** Real-time badge (`BUY`, `SELL`, `HOLD`) with FinBERT score.
+  - **Backtest Metrics:** Out-of-sample Sharpe ratio, win rate, and total trades.
 - **Interactive Controls:** Start/Pause/Completed toggles, speed selector (`1x`, `2x`, `5x`, `Instant`), initial capital input, and model architecture switcher.
 - **Dual Dynamic Visualizations:** Synchronous Chart.js rendering for actual vs. predicted price trajectory, portfolio equity curve, and daily sentiment polarity bar chart.
 
@@ -164,7 +164,7 @@ curl -X POST "http://localhost:8000/predict" \
 
 ---
 
-## 🛠️ Step-by-Step Reproduction Guide
+## Step-by-Step Reproduction Guide
 
 ### 1. Clone the Repository & Setup Environment
 ```bash
@@ -282,13 +282,13 @@ DL-project-PE5/
 
 ---
 
-## 📜 Academic Integrity & Tool Disclosure
+## Academic Integrity & Tool Disclosure
 
 In accordance with Manipal Institute of Technology academic integrity guidelines, full tool transparency is documented in [docs/llm_usage.md](docs/llm_usage.md). All neural architectures, mathematical formulations, experimental pipelines, and backtesting metrics were authored, trained, validated, and debugged collaboratively by the team members.
 
 ---
 
-## 📚 Selected References
+## Selected References
 
 1. **Araci, D.** (2019). *FinBERT: Financial Sentiment Analysis with Pre-trained Language Models*. arXiv:1908.10063.
 2. **Hochreiter, S., & Schmidhuber, J.** (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735–1780.
@@ -298,8 +298,3 @@ In accordance with Manipal Institute of Technology academic integrity guidelines
 6. **Bollen, J., Mao, H., & Zeng, X.** (2011). *Twitter mood predicts the stock market*. Journal of Computational Science, 2(1), 1–8.
 7. **De Prado, M. L.** (2018). *Advances in Financial Machine Learning*. John Wiley & Sons.
 
----
-
-<div align="center">
-<b>Department of Information and Communication Technology | Manipal Institute of Technology, Manipal</b>
-</div>

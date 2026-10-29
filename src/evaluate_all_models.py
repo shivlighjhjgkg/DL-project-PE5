@@ -50,23 +50,36 @@ class TemporalAttentionLayer(layers.Layer):
         super(TemporalAttentionLayer, self).__init__(**kwargs)
 
     def build(self, input_shape):
+        hidden_dim = input_shape[-1]
         self.W = self.add_weight(
-            name='attention_weight', shape=(input_shape[-1], 1),
-            initializer='glorot_uniform', trainable=True
+            name="attention_weight",
+            shape=(hidden_dim, hidden_dim),
+            initializer="glorot_uniform",
+            trainable=True
         )
         self.b = self.add_weight(
-            name='attention_bias', shape=(input_shape[1], 1),
-            initializer='zeros', trainable=True
+            name="attention_bias",
+            shape=(hidden_dim,),
+            initializer="zeros",
+            trainable=True
+        )
+        self.v = self.add_weight(
+            name="context_vector",
+            shape=(hidden_dim, 1),
+            initializer="glorot_uniform",
+            trainable=True
         )
         super(TemporalAttentionLayer, self).build(input_shape)
 
-    def call(self, x):
-        e = tf.tanh(tf.matmul(x, self.W) + self.b)
-        a = tf.nn.softmax(e, axis=1)
-        return tf.reduce_sum(x * a, axis=1)
+    def call(self, inputs):
+        score = tf.tanh(tf.tensordot(inputs, self.W, axes=1) + self.b)
+        score = tf.tensordot(score, self.v, axes=[-1, 0])
+        attention_weights = tf.nn.softmax(score, axis=1)
+        context = tf.reduce_sum(inputs * attention_weights, axis=1)
+        return context, attention_weights
 
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], input_shape[-1])
+    def get_config(self):
+        return super(TemporalAttentionLayer, self).get_config()
 
 
 STOCK_PATH = os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv')

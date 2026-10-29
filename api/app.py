@@ -407,19 +407,23 @@ def get_backtest_data(model: str = "ensemble", scope: str = "test"):
         "actual_prices": [round(p, 2) for p in y_actual],
         "predicted_prices": [round(p, 2) for p in preds_unscaled],
         "portfolio_history": portfolio_history,
+        "sentiments": [round(s, 3) for s in out_sent],
         "sentiment_scores": [round(s, 3) for s in out_sent],
         "signals": signals,
         "trades": trades,
         "metrics": {
             "initial_capital": 10000.0,
+            "final_value": round(final_val, 2),
             "final_equity": round(final_val, 2),
+            "total_return_pct": round(tot_ret, 2),
             "strategy_return_pct": round(tot_ret, 2),
             "buy_hold_return_pct": round(bh_ret, 2),
             "sharpe_ratio": round(sharpe, 2),
-            "win_rate_pct": round(win_rate, 2),
+            "win_rate": round(win_rate, 1),
+            "win_rate_pct": round(win_rate, 1),
             "total_trades": len(trades),
             "model_name": model.upper(),
-            "scope_name": f"{len(out_dates)} Trading Days ({'Test Set' if scope=='test' else 'Full History'})"
+            "scope_name": f"{len(out_dates)} Days ({'Test Set' if scope=='test' else 'Full History'})"
         }
     }
     state["cache"][cache_key] = result
@@ -431,9 +435,9 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FinBERT-LSTM Multi-Modal Trading Dashboard</title>
+    <title>FinBERT-LSTM Trading System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --bg-main: #0b0f19;
@@ -446,7 +450,7 @@ DASHBOARD_HTML = """<!DOCTYPE html>
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
         body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 24px; }
         .container { max-width: 1440px; margin: 0 auto; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border-col); padding-bottom: 16px; }
@@ -456,21 +460,23 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
         
         .controls-panel { background: var(--card-bg); border: 1px solid var(--border-col); border-radius: 14px; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; }
-        .control-group { display: flex; align-items: center; gap: 12px; }
-        button.btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.15s ease; }
+        .control-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        button.btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.15s ease, filter 0.15s ease; }
         button.btn-primary:hover { transform: translateY(-1px); filter: brightness(1.1); }
-        button.btn-secondary { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border-col); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        button.btn-secondary { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border-col); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s ease; }
         button.btn-secondary:hover { background: rgba(255,255,255,0.12); }
-        select, input { background: rgba(11, 15, 25, 0.8); border: 1px solid var(--border-col); color: white; padding: 8px 14px; border-radius: 8px; outline: none; }
+        select, input { background: rgba(11, 15, 25, 0.8); border: 1px solid var(--border-col); color: white; padding: 8px 14px; border-radius: 8px; outline: none; font-size: 13px; }
         
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+        @media(max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media(max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } }
         .stat-card { background: var(--card-bg); border: 1px solid var(--border-col); border-radius: 12px; padding: 16px 20px; }
         .stat-label { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
         .stat-val { font-size: 24px; font-weight: 700; color: #fff; }
         .stat-sub { font-size: 12px; margin-top: 4px; color: var(--text-muted); }
-        .text-green { color: var(--green); }
-        .text-red { color: var(--red); }
-        .badge-signal { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 700; }
+        .text-green { color: var(--green) !important; }
+        .text-red { color: var(--red) !important; }
+        .badge-signal { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
         .badge-buy { background: rgba(16, 185, 129, 0.2); color: var(--green); border: 1px solid var(--green); }
         .badge-sell { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
         .badge-hold { background: rgba(245, 158, 11, 0.2); color: var(--yellow); border: 1px solid var(--yellow); }
@@ -491,190 +497,324 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         <header>
             <div class="logo">
                 <i class="fa-solid fa-chart-line" style="color: #6366f1;"></i>
-                FinBERT-LSTM Quantitative Trading System (Team 12)
+                FinBERT-LSTM Trading System
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
-                <a href="/docs" target="_blank" style="color: var(--text-muted); font-size: 14px; text-decoration: none;">
-                    <i class="fa-solid fa-book"></i> API Documentation
+                <a href="/docs" target="_blank" style="color: var(--text-muted); font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-book"></i> API Docs
                 </a>
-                <div class="badge-live">System Active</div>
+                <div class="badge-live">Server Online</div>
             </div>
         </header>
 
         <div class="controls-panel">
             <div class="control-group">
-                <label style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Model Architecture:</label>
-                <select id="modelSelect">
-                    <option value="ensemble" selected>Quantitative Ensemble (Blended)</option>
-                    <option value="attention_bilstm">Model 4: Attention-BiLSTM (Prajika)</option>
-                    <option value="finbert_lstm">Model 3: FinBERT-LSTM Fusion (Dakshayani)</option>
-                    <option value="lstm">Model 2: Standard LSTM (Shivli)</option>
-                    <option value="mlp">Model 1: MLP Baseline (Priyanshu)</option>
-                </select>
-                <select id="scopeSelect">
-                    <option value="test" selected>Out-of-Sample Test Set (86 Days)</option>
-                    <option value="full">Full Aligned History (468 Days)</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <button class="btn-primary" id="btnPlay" onclick="startSimulation()">
-                    <i class="fa-solid fa-play"></i> Start Live Backtest
+                <button id="startBtn" class="btn-primary" onclick="toggleSimulation()">
+                    <i id="playIcon" class="fa-solid fa-play"></i>
+                    <span id="playText">Start Live Backtest</span>
                 </button>
-                <button class="btn-secondary" id="btnReset" onclick="resetSimulation()">
+                <button class="btn-secondary" onclick="resetSimulation()">
                     <i class="fa-solid fa-rotate-right"></i> Reset
                 </button>
             </div>
+            <div class="control-group">
+                <label style="font-size: 13px; color: var(--text-muted);">Model:</label>
+                <select id="modelSelect" onchange="loadData()">
+                    <option value="ensemble" selected>Ensemble (Multi-Modal Blend)</option>
+                    <option value="finbert_lstm">FinBERT-LSTM (Dakshayani - Model 3)</option>
+                    <option value="attention_bilstm">Attention-BiLSTM (Prajika - Model 4)</option>
+                    <option value="lstm">Standard LSTM (Shivli - Model 2)</option>
+                    <option value="mlp">MLP Baseline (Priyanshu - Model 1)</option>
+                </select>
+
+                <label style="font-size: 13px; color: var(--text-muted); margin-left: 4px;">Scope:</label>
+                <select id="scopeSelect" onchange="loadData()">
+                    <option value="test" selected>Test Set (86 Days)</option>
+                    <option value="full">Full History (430 Days)</option>
+                </select>
+
+                <label style="font-size: 13px; color: var(--text-muted); margin-left: 4px;">Speed:</label>
+                <select id="speedSelect" onchange="updateSpeed()">
+                    <option value="350">1x (Normal)</option>
+                    <option value="150" selected>2x (Fast)</option>
+                    <option value="40">5x (Hyper)</option>
+                    <option value="5">Instant</option>
+                </select>
+                <label style="font-size: 13px; color: var(--text-muted); margin-left: 4px;">Capital ($):</label>
+                <input id="initCapital" type="number" value="10000" style="width: 85px;" onchange="resetSimulation()">
+            </div>
+            <div id="statusText" style="font-size: 13px; color: var(--text-muted); width: 100%; text-align: right;">Select model and click Start Live Backtest</div>
+            <div class="progress-bar-container">
+                <div id="pBar" class="progress-bar"></div>
+            </div>
         </div>
 
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <div class="stats-grid" style="margin-top: 18px;">
+        <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-wallet"></i> Portfolio Equity</div>
-                <div class="stat-val" id="valPortfolio">$10,000.00</div>
-                <div class="stat-sub" id="valReturn">+0.00% Net Return</div>
+                <div class="stat-label"><i class="fa-solid fa-wallet"></i> Portfolio Value</div>
+                <div id="valPortfolio" class="stat-val">$10,000.00</div>
+                <div id="valReturn" class="stat-sub text-green">+0.00%</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-tags"></i> Current NASDAQ Price</div>
-                <div class="stat-val" id="valPrice">---</div>
-                <div class="stat-sub" id="valDate">Simulation Ready</div>
+                <div class="stat-label"><i class="fa-solid fa-tag"></i> Latest Price</div>
+                <div id="valPrice" class="stat-val">--</div>
+                <div id="valPriceDate" class="stat-sub">Waiting for start...</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-bullseye"></i> AI Model Prediction</div>
-                <div class="stat-val" id="valPred">---</div>
-                <div class="stat-sub" id="valSignal"><span class="badge-signal badge-hold">HOLD</span></div>
+                <div class="stat-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Model Prediction</div>
+                <div id="valPred" class="stat-val">--</div>
+                <div id="valDiff" class="stat-sub">--</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label"><i class="fa-solid fa-scale-balanced"></i> Benchmark (Buy & Hold)</div>
-                <div class="stat-val" id="valBHReturn">---</div>
-                <div class="stat-sub" id="valSharpe">Sharpe: 0.00 | Win: 0.0%</div>
+                <div class="stat-label"><i class="fa-solid fa-robot"></i> Trading Signal</div>
+                <div style="margin-top: 4px;"><span id="valSignal" class="badge-signal badge-hold">HOLD</span></div>
+                <div id="valSent" class="stat-sub">FinBERT: +0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label"><i class="fa-solid fa-trophy"></i> Backtest Metrics</div>
+                <div style="font-size: 15px; font-weight: 600; margin-top: 4px;" id="valMetrics">Sharpe: 0.76 | Win: 53.8%</div>
+                <div class="stat-sub" id="valTrades">Trades Executed: 0</div>
             </div>
         </div>
 
         <div class="charts-grid">
             <div class="chart-box">
                 <div class="chart-title">
-                    <span><i class="fa-solid fa-chart-candlestick"></i> Price Forecasting & AI Trajectory</span>
-                    <span id="labelIndex" style="font-size: 13px; color: var(--text-muted);">Step 0 / 0</span>
+                    <span><i class="fa-solid fa-chart-area"></i> Stock Price: Actual vs Predicted</span>
+                    <span style="font-size: 12px; color: var(--text-muted);" id="chartSubtitle">Attention-LSTM & FinBERT Sentiment</span>
                 </div>
-                <canvas id="priceChart" height="280"></canvas>
+                <div style="height: 320px; position: relative;">
+                    <canvas id="priceChart"></canvas>
+                </div>
             </div>
+
             <div class="chart-box">
                 <div class="chart-title">
-                    <span><i class="fa-solid fa-money-bill-trend-up"></i> Cumulative Strategy Equity ($)</span>
+                    <span><i class="fa-solid fa-money-bill-trend-up"></i> Portfolio Equity Curve ($)</span>
                 </div>
-                <canvas id="equityChart" height="280"></canvas>
+                <div style="height: 320px; position: relative;">
+                    <canvas id="equityChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="charts-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="charts-grid">
             <div class="chart-box">
                 <div class="chart-title">
-                    <span><i class="fa-solid fa-newspaper"></i> FinBERT Daily News Sentiment Score</span>
+                    <span><i class="fa-solid fa-newspaper"></i> News Sentiment Score [-1.0 to +1.0]</span>
                 </div>
-                <canvas id="sentimentChart" height="180"></canvas>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
             </div>
+
             <div class="chart-box">
                 <div class="chart-title">
-                    <span><i class="fa-solid fa-list-check"></i> Executed Algorithmic Trades</span>
-                    <span id="tradeCount" style="font-size: 13px; color: var(--text-muted);">0 Trades</span>
+                    <span><i class="fa-solid fa-list-check"></i> Live Execution Log</span>
+                    <span id="logCount" style="font-size: 12px; color: var(--text-muted);">0 events</span>
                 </div>
-                <div class="trade-log" id="tradeLog">
-                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">Click "Start Live Backtest" to begin trading simulation.</div>
+                <div id="tradeLog" class="trade-log">
+                    <div style="color: var(--text-muted); text-align: center; padding: 20px;">Click 'Start Live Backtest' to stream trading activity.</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let rawData = null;
-        let simInterval = null;
-        let currentIdx = 0;
+        let fullData = null;
+        let currentIndex = 0;
+        let isRunning = false;
+        let timer = null;
+        let speed = 150;
+
         let priceChart, equityChart, sentimentChart;
 
+        async function init() {
+            initCharts();
+            await loadData();
+        }
+
+        async function loadData() {
+            resetSimulation();
+            const model = document.getElementById('modelSelect').value;
+            const scope = document.getElementById('scopeSelect').value;
+            document.getElementById('statusText').textContent = `Loading ${model.toUpperCase()} predictions...`;
+
+            try {
+                const res = await fetch(`/api/backtest/data?model=${model}&scope=${scope}`);
+                fullData = await res.json();
+                document.getElementById('statusText').textContent = `Ready: ${fullData.dates.length} days loaded. Click Start Live Backtest.`;
+                document.getElementById('valMetrics').textContent = `Sharpe: ${fullData.metrics.sharpe_ratio} | Win: ${fullData.metrics.win_rate || fullData.metrics.win_rate_pct}%`;
+                
+                // Update chart subtitle to show selected model
+                const modelNames = {
+                    "ensemble": "Ensemble (Attention-BiLSTM + FinBERT-LSTM + MLP)",
+                    "finbert_lstm": "FinBERT-LSTM (Multi-Modal Price + Sentiment)",
+                    "attention_bilstm": "Attention-BiLSTM (Bidirectional + Temporal Attention)",
+                    "lstm": "Standard LSTM (Price-Only Baseline)",
+                    "mlp": "MLP Baseline (Feedforward Neural Net)"
+                };
+                document.getElementById('chartSubtitle').textContent = modelNames[model] || model.toUpperCase();
+            } catch (err) {
+                document.getElementById('statusText').textContent = 'Error loading model data: ' + err;
+            }
+        }
+
         function initCharts() {
-            const chartOpts = {
+            const chartDefaults = {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: false,
-                scales: {
-                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9ca3af', maxTicksLimit: 8 } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#9ca3af' } }
+                plugins: {
+                    legend: { labels: { color: '#9ca3af', font: { size: 12 } } },
+                    tooltip: { mode: 'index', intersect: false }
                 },
-                plugins: { legend: { labels: { color: '#f3f4f6' } } }
+                scales: {
+                    x: {
+                        ticks: { color: '#6b7280', maxTicksLimit: 12, font: { size: 11 } },
+                        grid: { color: 'rgba(255,255,255,0.04)' }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 11 },
+                            callback: function(v) { return '$' + Number(v).toLocaleString(); }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.04)' }
+                    }
+                }
             };
 
-            const ctxP = document.getElementById('priceChart').getContext('2d');
-            priceChart = new Chart(ctxP, {
+            priceChart = new Chart(document.getElementById('priceChart'), {
                 type: 'line',
                 data: {
                     labels: [],
                     datasets: [
-                        { label: 'Actual NASDAQ-100 Close', data: [], borderColor: '#f3f4f6', borderWidth: 2, pointRadius: 0 },
-                        { label: 'AI Predicted Close', data: [], borderColor: '#6366f1', borderWidth: 2, borderDash: [4, 4], pointRadius: 0 }
+                        {
+                            label: 'Actual Price',
+                            data: [],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59,130,246,0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 6,
+                            tension: 0.15,
+                            fill: false
+                        },
+                        {
+                            label: 'Predicted Price',
+                            data: [],
+                            borderColor: '#f59e0b',
+                            borderDash: [4, 4],
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#f59e0b',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 6,
+                            tension: 0.15,
+                            fill: false
+                        }
                     ]
                 },
-                options: chartOpts
+                options: chartDefaults
             });
 
-            const ctxE = document.getElementById('equityChart').getContext('2d');
-            equityChart = new Chart(ctxE, {
+            equityChart = new Chart(document.getElementById('equityChart'), {
                 type: 'line',
                 data: {
                     labels: [],
-                    datasets: [
-                        { label: 'AI Strategy ($)', data: [], borderColor: '#10b981', borderWidth: 2, fill: true, backgroundColor: 'rgba(16, 185, 129, 0.08)', pointRadius: 0 }
-                    ]
+                    datasets: [{
+                        label: 'Portfolio ($)',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16,185,129,0.15)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.1
+                    }]
                 },
-                options: chartOpts
+                options: chartDefaults
             });
 
-            const ctxS = document.getElementById('sentimentChart').getContext('2d');
-            sentimentChart = new Chart(ctxS, {
+            sentimentChart = new Chart(document.getElementById('sentimentChart'), {
                 type: 'bar',
                 data: {
                     labels: [],
-                    datasets: [
-                        { label: 'FinBERT Score', data: [], backgroundColor: [] }
-                    ]
+                    datasets: [{
+                        label: 'FinBERT Score',
+                        data: [],
+                        backgroundColor: (ctx) => {
+                            const val = ctx.raw;
+                            return val >= 0 ? 'rgba(16, 185, 129, 0.75)' : 'rgba(239, 68, 68, 0.75)';
+                        }
+                    }]
                 },
                 options: {
-                    ...chartOpts,
+                    ...chartDefaults,
                     scales: {
-                        ...chartOpts.scales,
-                        y: { min: -1.0, max: 1.0, ticks: { color: '#9ca3af' } }
+                        ...chartDefaults.scales,
+                        y: {
+                            min: -1,
+                            max: 1,
+                            ticks: { color: '#6b7280', font: { size: 11 } },
+                            grid: { color: 'rgba(255,255,255,0.04)' }
+                        }
                     }
                 }
             });
         }
 
-        async function loadBacktestData() {
-            const m = document.getElementById('modelSelect').value;
-            const s = document.getElementById('scopeSelect').value;
-            const res = await fetch(`/api/backtest/data?model=${m}&scope=${s}`);
-            rawData = await res.json();
-            resetSimulation();
+        function updateSpeed() {
+            speed = parseInt(document.getElementById('speedSelect').value);
+            if (isRunning) {
+                clearInterval(timer);
+                timer = setInterval(stepSimulation, speed);
+            }
+        }
+
+        function toggleSimulation() {
+            if (!fullData) return;
+            isRunning = !isRunning;
+            const playIcon = document.getElementById('playIcon');
+            const playText = document.getElementById('playText');
+            if (isRunning) {
+                playIcon.className = 'fa-solid fa-pause';
+                playText.textContent = 'Pause Backtest';
+                timer = setInterval(stepSimulation, speed);
+            } else {
+                playIcon.className = 'fa-solid fa-play';
+                playText.textContent = 'Resume Backtest';
+                clearInterval(timer);
+            }
         }
 
         function resetSimulation() {
-            clearInterval(simInterval);
-            simInterval = null;
-            currentIdx = 0;
-            document.getElementById('btnPlay').innerHTML = '<i class="fa-solid fa-play"></i> Start Live Backtest';
-            document.getElementById('progressBar').style.width = '0%';
-            document.getElementById('tradeLog').innerHTML = '';
-            document.getElementById('valPortfolio').innerText = '$10,000.00';
-            document.getElementById('valReturn').innerText = '+0.00% Net Return';
-            document.getElementById('valReturn').className = 'stat-sub';
-            document.getElementById('valPrice').innerText = '---';
-            document.getElementById('valPred').innerText = '---';
-            document.getElementById('valDate').innerText = 'Simulation Ready';
-            document.getElementById('valBHReturn').innerText = '---';
-            document.getElementById('tradeCount').innerText = '0 Trades';
+            clearInterval(timer);
+            isRunning = false;
+            currentIndex = 0;
+            document.getElementById('playIcon').className = 'fa-solid fa-play';
+            document.getElementById('playText').textContent = 'Start Live Backtest';
+            document.getElementById('pBar').style.width = '0%';
+            document.getElementById('tradeLog').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">Click Start Live Backtest to stream trading activity.</div>';
+            document.getElementById('valPortfolio').textContent = '$' + Number(document.getElementById('initCapital').value).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('valReturn').textContent = '+0.00%';
+            document.getElementById('valTrades').textContent = 'Trades Executed: 0';
+            document.getElementById('valPrice').textContent = '--';
+            document.getElementById('valPriceDate').textContent = 'Waiting for start...';
+            document.getElementById('valPred').textContent = '--';
+            document.getElementById('valDiff').textContent = '--';
+            document.getElementById('statusText').textContent = 'Simulation Ready';
 
-            if (!rawData) return;
+            if (!priceChart) return;
             priceChart.data.labels = [];
             priceChart.data.datasets[0].data = [];
             priceChart.data.datasets[1].data = [];
@@ -686,102 +826,87 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
             sentimentChart.data.labels = [];
             sentimentChart.data.datasets[0].data = [];
-            sentimentChart.data.datasets[0].backgroundColor = [];
             sentimentChart.update();
-        }
-
-        function startSimulation() {
-            if (!rawData) return;
-            if (simInterval) {
-                clearInterval(simInterval);
-                simInterval = null;
-                document.getElementById('btnPlay').innerHTML = '<i class="fa-solid fa-play"></i> Resume';
-                return;
-            }
-            document.getElementById('btnPlay').innerHTML = '<i class="fa-solid fa-pause"></i> Pause';
-            simInterval = setInterval(stepSimulation, 80);
         }
 
         function stepSimulation() {
-            if (!rawData || currentIdx >= rawData.dates.length) {
-                clearInterval(simInterval);
-                simInterval = null;
-                document.getElementById('btnPlay').innerHTML = '<i class="fa-solid fa-check"></i> Finished';
+            if (!fullData || currentIndex >= fullData.dates.length) {
+                clearInterval(timer);
+                isRunning = false;
+                document.getElementById('playIcon').className = 'fa-solid fa-check';
+                document.getElementById('playText').textContent = 'Completed';
+                document.getElementById('statusText').textContent = 'Simulation Completed!';
                 return;
             }
 
-            const i = currentIdx;
-            const date = rawData.dates[i];
-            const actualP = rawData.actual_prices[i];
-            const predP = rawData.predicted_prices[i];
-            const equity = rawData.portfolio_history[i];
-            const sent = rawData.sentiment_scores[i];
-            const sig = rawData.signals[i];
+            const i = currentIndex;
+            const date = fullData.dates[i];
+            const actual = fullData.actual_prices[i];
+            const pred = fullData.predicted_prices[i];
+            const sent = (fullData.sentiments && fullData.sentiments[i] !== undefined) ? fullData.sentiments[i] : (fullData.sentiment_scores ? fullData.sentiment_scores[i] : 0.0);
+            const sig = fullData.signals[i] || 'HOLD';
+            const port = fullData.portfolio_history[i];
 
-            // Update charts
+            // Update stats
+            document.getElementById('valPrice').textContent = '$' + actual.toFixed(2);
+            document.getElementById('valPriceDate').textContent = date;
+            document.getElementById('valPred').textContent = '$' + pred.toFixed(2);
+            const diff = pred - actual;
+            const diffPct = (diff / actual) * 100;
+            document.getElementById('valDiff').textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(2)} (${diffPct.toFixed(2)}%)`;
+            document.getElementById('valDiff').className = `stat-sub ${diff >= 0 ? 'text-green' : 'text-red'}`;
+
+            const sigBadge = document.getElementById('valSignal');
+            sigBadge.textContent = sig;
+            sigBadge.className = `badge-signal badge-${sig.toLowerCase()}`;
+            document.getElementById('valSent').textContent = `FinBERT: ${sent >= 0 ? '+' : ''}${sent.toFixed(2)}`;
+
+            document.getElementById('valPortfolio').textContent = '$' + port.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const initCap = fullData.metrics.initial_capital || 10000;
+            const retPct = ((port - initCap) / initCap) * 100;
+            const retElem = document.getElementById('valReturn');
+            retElem.textContent = `${retPct >= 0 ? '+' : ''}${retPct.toFixed(2)}%`;
+            retElem.className = `stat-sub ${retPct >= 0 ? 'text-green' : 'text-red'}`;
+
+            // Progress bar
+            const pct = ((i + 1) / fullData.dates.length) * 100;
+            document.getElementById('pBar').style.width = pct + '%';
+            document.getElementById('statusText').textContent = `Simulation Running: Day ${i + 1} of ${fullData.dates.length} (${date})`;
+
+            // Charts
             priceChart.data.labels.push(date);
-            priceChart.data.datasets[0].data.push(actualP);
-            priceChart.data.datasets[1].data.push(predP);
-            priceChart.update();
+            priceChart.data.datasets[0].data.push(actual);
+            priceChart.data.datasets[1].data.push(pred);
+            priceChart.update('none');
 
             equityChart.data.labels.push(date);
-            equityChart.data.datasets[0].data.push(equity);
-            equityChart.update();
+            equityChart.data.datasets[0].data.push(port);
+            equityChart.update('none');
 
             sentimentChart.data.labels.push(date);
             sentimentChart.data.datasets[0].data.push(sent);
-            sentimentChart.data.datasets[0].backgroundColor.push(sent >= 0 ? 'rgba(16,185,129,0.7)' : 'rgba(239,68,68,0.7)');
-            sentimentChart.update();
+            sentimentChart.update('none');
 
-            // Update stats
-            document.getElementById('valPortfolio').innerText = `$${equity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
-            const ret = ((equity - 10000) / 10000) * 100;
-            document.getElementById('valReturn').innerText = `${ret >= 0 ? '+' : ''}${ret.toFixed(2)}% Net Return`;
-            document.getElementById('valReturn').className = `stat-sub ${ret >= 0 ? 'text-green' : 'text-red'}`;
-            document.getElementById('valPrice').innerText = `$${actualP.toFixed(2)}`;
-            document.getElementById('valPred').innerText = `$${predP.toFixed(2)}`;
-            document.getElementById('valDate').innerText = date;
-
-            let sigClass = 'badge-hold';
-            if (sig === 'BUY') sigClass = 'badge-buy';
-            if (sig === 'SELL') sigClass = 'badge-sell';
-            document.getElementById('valSignal').innerHTML = `<span class="badge-signal ${sigClass}">${sig}</span>`;
-
-            // Progress bar
-            const pct = ((i + 1) / rawData.dates.length) * 100;
-            document.getElementById('progressBar').style.width = `${pct}%`;
-            document.getElementById('labelIndex').innerText = `Day ${i + 1} / ${rawData.dates.length}`;
-
-            // Check trade log
-            const trade = rawData.trades.find(t => t.date === date);
-            if (trade) {
+            // Check if trade occurred
+            if (sig === 'BUY' || sig === 'SELL') {
                 const log = document.getElementById('tradeLog');
-                const div = document.createElement('div');
-                div.className = 'trade-item';
-                div.innerHTML = `
-                    <div><strong>${trade.date}</strong> - ${trade.shares} units</div>
-                    <div><span class="badge-signal ${trade.type === 'BUY' ? 'badge-buy' : 'badge-sell'}">${trade.type}</span> @ $${trade.price}</div>
+                if (currentIndex === 0) log.innerHTML = '';
+                const item = document.createElement('div');
+                item.className = 'trade-item';
+                const col = sig === 'BUY' ? 'var(--green)' : 'var(--red)';
+                item.innerHTML = `
+                    <div><strong>${date}</strong>: <span style="color: ${col}; font-weight:700;">${sig}</span> @ $${actual.toFixed(2)}</div>
+                    <div style="color: var(--text-muted);">Port: $${port.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                 `;
-                log.prepend(div);
-                document.getElementById('tradeCount').innerText = `${document.querySelectorAll('.trade-item').length} Trades`;
+                log.prepend(item);
+                document.getElementById('logCount').textContent = `${log.children.length} trades`;
+                document.getElementById('valTrades').textContent = `Trades Executed: ${log.children.length}`;
             }
 
-            // Final metrics on last step
-            if (i === rawData.dates.length - 1) {
-                const m = rawData.metrics;
-                document.getElementById('valBHReturn').innerText = `${m.buy_hold_return_pct >= 0 ? '+' : ''}${m.buy_hold_return_pct}% B&H`;
-                document.getElementById('valSharpe').innerText = `Sharpe: ${m.sharpe_ratio} | Win Rate: ${m.win_rate_pct}%`;
-            }
-
-            currentIdx++;
+            currentIndex++;
         }
 
-        window.onload = () => {
-            initCharts();
-            loadBacktestData();
-            document.getElementById('modelSelect').addEventListener('change', loadBacktestData);
-            document.getElementById('scopeSelect').addEventListener('change', loadBacktestData);
-        };
+        window.onload = init;
     </script>
 </body>
 </html>

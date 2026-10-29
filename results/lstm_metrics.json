@@ -1,0 +1,19 @@
+{
+  "model": "standard_lstm",
+  "input_type": "price_only",
+  "sequence_length": 10,
+  "split": {
+    "train": 0.6,
+    "validation": 0.2,
+    "test": 0.2
+  },
+  "metrics": {
+    "mae": 488.2752543604653,
+    "rmse": 575.9768443955127,
+    "mape_percent": 4.0373752691405596,
+    "directional_accuracy_percent": 45.88235294117647,
+    "strategy_return_percent": 10.712135352644815,
+    "sharpe_ratio": 1.06991762561613,
+    "buy_and_hold_return_percent": -5.667973769923607
+  }
+}

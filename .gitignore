@@ -10,4 +10,5 @@ data/processed/sentiment.csv
 .matplotlib/
 *.docx
 *.pdf
+results/report_assets/
 

@@ -1,6 +1,6 @@
 Model,Member Owner,Architecture Summary,MAE ($),RMSE ($),MAPE (%),R²,Direction Acc (%),Strategy Return (%),Buy & Hold (%),Sharpe Ratio,Win Rate (%),Max Drawdown (%)
 MLP Baseline,Priyanshu Singh (230911412),"Dense 64->32->16->1 (ReLU, L2, Dropout)",350.84,413.7,2.87,0.6043,48.24,6.1,-5.67,0.84,54.55,-9.58
-Standard LSTM,Shivli Dimri (230953114),"Stacked LSTM 32->16 (Price-only, L2, Dropout)",428.17,523.85,3.54,0.3656,43.53,-1.52,-5.67,-0.03,52.08,-11.81
+Standard LSTM,Shivli Dimri (230953114),"Stacked LSTM 32->16 (Price-only, L2, Dropout)",488.28,575.98,4.04,0.233,45.88,3.05,-5.67,0.47,54.17,-11.14
 FinBERT-LSTM,Dakshayani Sharma (230911066),Multimodal LSTM 32->16 + Sentiment input,450.83,555.88,3.74,0.2856,45.88,0.36,-5.67,0.18,52.08,-11.81
-Attention-BiLSTM,Prajika Saini (230953106),BiLSTM 32->16 + Attention + Residual Skips,299.5,372.22,2.48,0.6797,50.59,-4.77,-5.67,-0.37,50.85,-14.34
-Quantitative Ensemble,Joint Team Model,"Weighted Blend (45% Attn-BiLSTM, 35% FinBERT-LSTM, 20% MLP)",354.73,427.64,2.94,0.5772,49.41,-3.45,-5.67,-0.24,51.92,-13.52
+Attention-BiLSTM,Prajika Saini (230953106),BiLSTM 32->16 + Attention + Residual Skips,293.71,363.94,2.45,0.6938,49.41,-0.09,-5.67,0.15,50.0,-13.52
+Quantitative Ensemble,Joint Team Model,"Weighted Blend (45% Attn-BiLSTM, 35% FinBERT-LSTM, 20% MLP)",340.47,416.58,2.83,0.5988,43.53,3.43,-5.67,0.51,54.9,-11.81

@@ -85,12 +85,12 @@ All models were evaluated on the **identical out-of-sample test partition** (May
 
 | Model Architecture | Input Shape | Test MAE ($) | Test RMSE ($) | Test MAPE (%) | $R^2$ Score | Directional Acc (%) | Strategy Return (%) | Sharpe Ratio | Max Drawdown (%) | Win Rate (%) |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Baseline MLP** *(Priyanshu)* | `(N, 10, 2)` | \$350.84 | \$413.70 | 2.87% | 0.6043 | 48.24% | **+6.10%** | **0.84** | 10.51% | **62.5%** |
-| **Standard LSTM (Price-only)** *(Shivli)* | `(N, 10, 1)` | \$428.17 | \$523.85 | 3.54% | 0.3656 | 43.53% | -1.52% | -0.03 | 11.89% | 40.0% |
-| **FinBERT-LSTM Multi-Modal** *(Dakshayani)* | `(N, 10, 2)` | \$450.83 | \$555.88 | 3.74% | 0.2856 | 45.88% | **+0.36%** | **0.18** | 11.23% | 46.2% |
-| **Attention-BiLSTM** *(Prajika)* | `(N, 10, 2)` | **\$299.50** | **\$372.22** | **2.48%** | **0.6797** | **50.59%** | -4.77% | -0.37 | 12.04% | 41.7% |
-| **Joint Weighted Ensemble** *(Team 12)* | `(N, 10, 2)` | \$354.73 | \$427.64 | 2.94% | 0.5772 | 49.41% | -3.45% | -0.24 | 11.58% | 45.5% |
-| **Market Benchmark: Buy & Hold NDX** | — | — | — | — | — | — | **-5.67%** | **-0.51** | **17.82%** | — |
+| **Baseline MLP** *(Priyanshu)* | `(N, 10, 2)` | \$350.84 | \$413.70 | 2.87% | 0.6043 | 48.24% | **+6.10%** | **0.84** | -9.58% | **54.55%** |
+| **Standard LSTM (Price-only)** *(Shivli)* | `(N, 10, 1)` | \$488.28 | \$575.98 | 4.04% | 0.2330 | 45.88% | **+3.05%** | 0.47 | -11.14% | 54.17% |
+| **FinBERT-LSTM Multi-Modal** *(Dakshayani)* | `(N, 10, 2)` | \$450.83 | \$555.88 | 3.74% | 0.2856 | 45.88% | **+0.36%** | 0.18 | -11.81% | 52.08% |
+| **Attention-BiLSTM** *(Prajika)* | `(N, 10, 2)` | **\$293.71** | **\$363.94** | **2.45%** | **0.6938** | **49.41%** | -0.09% | 0.15 | -13.52% | 50.00% |
+| **Joint Weighted Ensemble** *(Team 12)* | `(N, 10, 2)` | \$340.47 | \$416.58 | 2.83% | 0.5988 | 43.53% | **+3.43%** | **0.51** | -11.81% | 54.90% |
+| **Market Benchmark: Buy & Hold NDX** | — | — | — | — | — | — | **-5.67%** | **-0.51** | **-17.82%** | — |
 
 ### 🔍 Key Experimental Findings
 1. **Capital Preservation Under Extreme Market Regimes:** During the out-of-sample period, the NASDAQ-100 suffered a **-5.67%** drop with a severe peak-to-trough drawdown of -17.82%. The AI-driven threshold strategy generated defensive cash allocations, resulting in **positive net returns** (+6.10% on MLP and +0.36% on FinBERT-LSTM) and significantly lowering maximum drawdown.
@@ -243,7 +243,10 @@ DL-project-PE5/
 │       └── sentiment_new.csv           # FinBERT continuous daily polarity scores
 ├── docs/                               # Academic Documentation
 │   ├── data_card.md                    # Data provenance and pipeline documentation
-│   ├── dakshayani_finbert_lstm.md      # Model 3 dedicated technical report
+│   ├── priyanshu_mlp.md                # Model 1 dedicated technical report (Priyanshu)
+│   ├── shivli_standard_lstm.md         # Model 2 dedicated technical report (Shivli)
+│   ├── dakshayani_finbert_lstm.md      # Model 3 dedicated technical report (Dakshayani)
+│   ├── prajika_attention_bilstm.md     # Model 4 dedicated technical report (Prajika)
 │   ├── llm_usage.md                    # Academic integrity & AI usage disclosure
 │   └── lit/                            # Member-specific literature reviews
 │       ├── priyanshu.md                # Feedforward neural net literature

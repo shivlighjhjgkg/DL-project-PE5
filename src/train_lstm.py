@@ -13,6 +13,7 @@ Key Features:
 """
 
 import os
+import json
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -24,6 +25,8 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
+
+from backtest_engine import run_backtest
 
 np.random.seed(42)
 tf.random.set_seed(42)
@@ -38,6 +41,7 @@ PROJECT_ROOT = os.path.dirname(SRC_DIR)
 STOCK_PATH = os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv')) else 'stock_price.csv'
 MODEL_SAVE_PATH = os.path.join(PROJECT_ROOT, 'models', 'lstm_model.keras') if os.path.exists(os.path.join(PROJECT_ROOT, 'models')) else 'lstm_model.keras'
 PLOT_SAVE_PATH = os.path.join(PROJECT_ROOT, 'results', 'lstm_model_results.png') if os.path.exists(os.path.join(PROJECT_ROOT, 'results')) else 'lstm_model_results.png'
+METRICS_SAVE_PATH = os.path.join(PROJECT_ROOT, 'results', 'lstm_metrics.json')
 
 print(f"\n[1/7] Loading dataset from {STOCK_PATH}...")
 stock_df = pd.read_csv(STOCK_PATH)
@@ -136,19 +140,42 @@ actual_direction = np.diff(y_test_unscaled) > 0
 pred_direction = np.diff(y_pred_unscaled) > 0
 dir_accuracy = np.mean(actual_direction == pred_direction) * 100
 
-signals = np.zeros(len(y_pred_unscaled) - 1)
-for i in range(len(signals)):
-    signals[i] = 1 if y_pred_unscaled[i + 1] > y_test_unscaled[i] else 0
-
+test_dates = stock_df['Price'].iloc[
+    train_size + val_size + sequence_length:
+    train_size + val_size + len(stock_close)
+].to_numpy()
+test_current_prices = test_stock[sequence_length - 1:-1]
+backtest = run_backtest(
+    dates=test_dates,
+    prices=test_current_prices,
+    predictions=y_pred_unscaled,
+    actual_next_prices=y_test_unscaled,
+)
+strategy_returns = np.asarray(backtest["daily_returns"], dtype=float)
+cumulative_strategy_return = backtest["cumulative_return"]
+sharpe_ratio = backtest["sharpe"]
 actual_pct_change = np.diff(y_test_unscaled) / y_test_unscaled[:-1]
-strategy_returns = signals * actual_pct_change
-cumulative_strategy_return = np.prod(1 + strategy_returns) - 1
 cumulative_buy_hold = np.prod(1 + actual_pct_change) - 1
 
-if np.std(strategy_returns) > 0:
-    sharpe_ratio = (np.mean(strategy_returns) / np.std(strategy_returns)) * np.sqrt(252)
-else:
-    sharpe_ratio = 0.0
+metrics = {
+    "model": "standard_lstm",
+    "input_type": "price_only",
+    "sequence_length": sequence_length,
+    "split": {"train": 0.6, "validation": 0.2, "test": 0.2},
+    "metrics": {
+        "mae": float(mae),
+        "rmse": float(rmse),
+        "mape_percent": float(mape),
+        "directional_accuracy_percent": float(dir_accuracy),
+        "strategy_return_percent": float(cumulative_strategy_return * 100),
+        "sharpe_ratio": float(sharpe_ratio),
+        "buy_and_hold_return_percent": float(cumulative_buy_hold * 100),
+    },
+}
+os.makedirs(os.path.dirname(METRICS_SAVE_PATH), exist_ok=True)
+with open(METRICS_SAVE_PATH, "w", encoding="utf-8") as metrics_file:
+    json.dump(metrics, metrics_file, indent=2)
+print(f"  [OK] Saved metrics to {METRICS_SAVE_PATH}")
 
 print("\n" + "=" * 50)
 print("STANDARD LSTM PERFORMANCE REPORT")

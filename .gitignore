@@ -6,3 +6,5 @@ __pycache__/
 .env
 data/cache/
 data/processed/sentiment.csv
+.keras/
+.matplotlib/

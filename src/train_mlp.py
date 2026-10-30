@@ -1,16 +1,17 @@
-﻿"""
+"""
 MLP (Multi-Layer Perceptron) Baseline Trading Model
 ===================================================
 Contribution: Baseline Deep Neural Network Architecture
 Key Features:
 1. Multi-layer Feedforward Architecture (Dense 64 -> 32 -> 16 -> 1)
 2. Dropout and L2 Weight Regularization to prevent overfitting on small datasets
-3. Sequence windowing with Price and FinBERT sentiment features
-4. Full Backtest simulation: MAE, MAPE, R2, Directional Accuracy, Sharpe Ratio
-5. Model checkpoint export to models/mlp_model.keras
+3. Sequence windowing with Price and FinBERT sentiment features (aligned on Date via inner join)
+4. Full Backtest simulation: MAE, RMSE, MAPE, R2, Directional Accuracy, Sharpe Ratio
+5. Model checkpoint export to models/mlp_model.keras and metrics to results/mlp_metrics.json
 """
 
 import os
+import json
 import shutil
 import numpy as np
 import pandas as pd
@@ -35,24 +36,38 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SRC_DIR)
 
 STOCK_PATH = os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'raw', 'stock_price.csv')) else 'stock_price.csv'
-SENTIMENT_PATH = os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv')) else 'sentiment.csv'
+SENTIMENT_PATH = os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment_new.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment_new.csv')) else (
+    os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv') if os.path.exists(os.path.join(PROJECT_ROOT, 'data', 'processed', 'sentiment.csv')) else 'sentiment_new.csv'
+)
 MODEL_SAVE_PATH = os.path.join(PROJECT_ROOT, 'models', 'mlp_model.keras') if os.path.exists(os.path.join(PROJECT_ROOT, 'models')) else 'mlp_model.keras'
 API_MODEL_PATH = os.path.join(PROJECT_ROOT, 'api', 'mlp_model.keras')
 PLOT_SAVE_PATH = os.path.join(PROJECT_ROOT, 'results', 'mlp_model_results.png') if os.path.exists(os.path.join(PROJECT_ROOT, 'results')) else 'mlp_model_results.png'
+METRICS_SAVE_PATH = os.path.join(PROJECT_ROOT, 'results', 'mlp_metrics.json')
 
-print(f"\n[1/7] Loading dataset from {STOCK_PATH}...")
+print(f"\n[1/7] Loading and aligning dataset from {STOCK_PATH} and {SENTIMENT_PATH}...")
 stock_df = pd.read_csv(STOCK_PATH)
-sentiment_df = pd.read_csv(SENTIMENT_PATH)
-
 stock_df = stock_df.iloc[2:].copy().reset_index(drop=True)
+stock_df = stock_df.rename(columns={'Price': 'Date'})
 for col in ['Close', 'High', 'Low', 'Open', 'Volume']:
     stock_df[col] = pd.to_numeric(stock_df[col], errors='coerce')
-stock_df = stock_df.dropna()
+stock_df['Date'] = pd.to_datetime(stock_df['Date'], errors='coerce')
+stock_df = stock_df.dropna(subset=['Date', 'Close'])
 
-stock_close = stock_df['Close'].values
-sentiment_scores = sentiment_df['FinBERT score'].values
+sentiment_df = pd.read_csv(SENTIMENT_PATH)
+sentiment_df['Date'] = pd.to_datetime(sentiment_df['Date'], errors='coerce')
+sent_col = 'FinBERT score' if 'FinBERT score' in sentiment_df.columns else ('Sentiment' if 'Sentiment' in sentiment_df.columns else sentiment_df.columns[-1])
+sentiment_df = sentiment_df.rename(columns={sent_col: 'Sentiment'})
+sentiment_df = sentiment_df[['Date', 'Sentiment']].dropna(subset=['Date', 'Sentiment'])
 
-print(f"  Samples: {len(stock_close)}")
+# Inner join on Date between stock_price.csv and sentiment_new.csv
+merged = pd.merge(stock_df[['Date', 'Close']], sentiment_df, on='Date', how='inner')
+merged = merged.sort_values('Date').reset_index(drop=True)
+
+stock_close = merged['Close'].values
+sentiment_scores = merged['Sentiment'].values
+
+print(f"  Merged Rows (inner join on Date): {len(merged)}")
+print(f"  Date Range: [{merged['Date'].min().date()} -> {merged['Date'].max().date()}]")
 print(f"  Close Price Range: [{stock_close.min():.2f}, {stock_close.max():.2f}]")
 print(f"  Sentiment Range: [{sentiment_scores.min():.3f}, {sentiment_scores.max():.3f}]")
 
@@ -144,6 +159,7 @@ y_test_unscaled = price_scaler.inverse_transform(y_test.reshape(-1, 1)).flatten(
 y_pred_unscaled = price_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1)).flatten()
 
 mae = mean_absolute_error(y_test_unscaled, y_pred_unscaled)
+rmse = float(np.sqrt(np.mean((y_test_unscaled - y_pred_unscaled) ** 2)))
 mape = mean_absolute_percentage_error(y_test_unscaled, y_pred_unscaled) * 100
 r2 = r2_score(y_test_unscaled, y_pred_unscaled)
 
@@ -169,6 +185,7 @@ print("\n" + "=" * 50)
 print("MLP PERFORMANCE REPORT")
 print("=" * 50)
 print(f"  MAE:                  ${mae:.2f}")
+print(f"  RMSE:                 ${rmse:.2f}")
 print(f"  MAPE:                 {mape:.2f}%")
 print(f"  R2 Score:             {r2:.4f}")
 print(f"  Directional Accuracy: {dir_accuracy:.2f}%")
@@ -176,6 +193,36 @@ print(f"  Strategy Return:      {cumulative_strategy_return * 100:.2f}%")
 print(f"  Buy & Hold Return:    {cumulative_buy_hold * 100:.2f}%")
 print(f"  Sharpe Ratio:         {sharpe_ratio:.2f}")
 print("=" * 50)
+
+# Export metrics JSON
+metrics = {
+    "model_name": "MLP Baseline Model",
+    "tag": "mlp",
+    "member_owner": "Priyanshu Singh",
+    "architecture": "Multi-Layer Perceptron (Dense 64 -> 32 -> 16 -> 1, L2=0.001, Dropout)",
+    "input_features": ["Close", "Sentiment"],
+    "use_sentiment": True,
+    "n_features": 2,
+    "samples_total": int(total_len),
+    "samples_train": int(len(train_stock)),
+    "samples_val": int(len(val_stock)),
+    "samples_test": int(len(test_stock)),
+    "sequence_length": int(sequence_length),
+    "mae": float(mae),
+    "rmse": float(rmse),
+    "mape_pct": float(mape),
+    "r2": float(r2),
+    "directional_accuracy_pct": float(dir_accuracy),
+    "strategy_return_pct": float(cumulative_strategy_return * 100),
+    "buy_hold_return_pct": float(cumulative_buy_hold * 100),
+    "sharpe_ratio": float(sharpe_ratio),
+    "model_path": MODEL_SAVE_PATH
+}
+
+os.makedirs(os.path.dirname(METRICS_SAVE_PATH), exist_ok=True)
+with open(METRICS_SAVE_PATH, 'w') as f:
+    json.dump(metrics, f, indent=2)
+print(f"  [OK] Saved metrics JSON to {METRICS_SAVE_PATH}")
 
 print(f"\n[7/7] Generating plot at {PLOT_SAVE_PATH}...")
 os.makedirs(os.path.dirname(PLOT_SAVE_PATH), exist_ok=True)

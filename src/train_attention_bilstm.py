@@ -55,11 +55,9 @@ class TemporalAttentionLayer(layers.Layer):
 # 3. Load & Clean Stock Price Data
 price_raw = pd.read_csv("data/raw/stock_price.csv")
 
-# Skip the metadata rows (0: Ticker, 1: Date)
+# Skip metadata rows (0: Ticker, 1: Date)
 price_clean = price_raw.iloc[2:].copy()
 price_clean.columns = [c.strip() for c in price_raw.columns]
-
-# The dates are in the first column ('Price'), close prices are in 'Close'
 price_clean = price_clean.rename(columns={"Price": "Date"})
 price_clean["Date"] = pd.to_datetime(price_clean["Date"])
 price_clean["Close"] = pd.to_numeric(price_clean["Close"], errors="coerce")
@@ -147,7 +145,7 @@ model.fit(
 model.save("models/attention_bilstm_model.keras")
 print("Saved models/attention_bilstm_model.keras")
 
-# 8. Unscale Predictions and Export Metrics
+# 8. Unscale Predictions and Standard Metrics
 y_pred_scaled = model.predict(X_test).flatten()
 close_min = scaler.data_min_[0]
 close_max = scaler.data_max_[0]
@@ -159,36 +157,74 @@ mae = float(np.mean(np.abs(y_test_real - y_pred_real)))
 rmse = float(np.sqrt(np.mean((y_test_real - y_pred_real) ** 2)))
 mape = float(np.mean(np.abs((y_test_real - y_pred_real) / y_test_real)) * 100)
 
-actual_dir = np.sign(y_test_real[1:] - y_test_real[:-1])
-pred_dir = np.sign(y_pred_real[1:] - y_test_real[:-1])
-directional_acc = float(np.mean(actual_dir == pred_dir) * 100)
+# Directional Accuracy
+actual_returns = (y_test_real[1:] - y_test_real[:-1]) / y_test_real[:-1]
+pred_direction = np.where(y_pred_real[1:] > y_test_real[:-1], 1, -1)
+actual_direction = np.where(actual_returns > 0, 1, -1)
+directional_acc = float(np.mean(pred_direction == actual_direction) * 100)
+
+# 9. Walk-Forward Backtesting Simulation (Matching Team Specs)
+# Strategy: Long (1) if model predicts price will rise, Short/Cash (0 or -1) otherwise
+signals = np.where(y_pred_real[1:] > y_test_real[:-1], 1.0, 0.0)
+strategy_returns = signals * actual_returns
+
+# Cumulative Equity Curves
+strategy_equity = np.cumprod(1 + strategy_returns)
+buy_and_hold_equity = np.cumprod(1 + actual_returns)
+
+# Prepend starting multiple of 1.0
+strategy_equity = np.insert(strategy_equity, 0, 1.0)
+buy_and_hold_equity = np.insert(buy_and_hold_equity, 0, 1.0)
+
+strategy_total_return = float((strategy_equity[-1] - 1.0) * 100)
+bh_total_return = float((buy_and_hold_equity[-1] - 1.0) * 100)
+
+# Annualized Sharpe Ratio (Rf = 0%)
+excess_returns = strategy_returns
+sharpe_ratio = float(np.mean(excess_returns) / (np.std(excess_returns) + 1e-9) * np.sqrt(252))
 
 metrics = {
     "model": "Attention-BiLSTM",
     "MAE": round(mae, 2),
     "RMSE": round(rmse, 2),
     "MAPE": round(mape, 2),
-    "directional_accuracy_pct": round(directional_acc, 2)
+    "directional_accuracy_pct": round(directional_acc, 2),
+    "strategy_return_pct": round(strategy_total_return, 2),
+    "buy_and_hold_return_pct": round(bh_total_return, 2),
+    "sharpe_ratio": round(sharpe_ratio, 2)
 }
 
 with open("results/attention_bilstm_metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
-print("Metrics saved to results/attention_bilstm_metrics.json:", metrics)
+print("Updated Metrics saved:", metrics)
 
-# 9. Results Plot
-plt.figure(figsize=(10, 5))
-plt.plot(test_dates, y_test_real, label="Actual Price", color="black", linewidth=1.5)
-plt.plot(test_dates, y_pred_real, label="Predicted Price (Attention-BiLSTM)", color="royalblue", linestyle="--")
-plt.title("Attention-BiLSTM: Predicted vs Actual NASDAQ-100 Close")
-plt.xlabel("Date")
-plt.ylabel("USD ($)")
-plt.legend()
-plt.grid(True, alpha=0.3)
+# 10. Two-Subplot Results Figure (Prediction + Equity Curve)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+
+# Left Subplot: Predictions vs Actual
+ax1.plot(y_test_real, label="Actual NDX Close", color="black", linewidth=1.2)
+ax1.plot(y_pred_real, label="Attention-BiLSTM Predictions", color="firebrick", linestyle="--", linewidth=1.2)
+ax1.set_title(f"Attention-BiLSTM Predictions vs Actual (MAE: ${mae:.1f})")
+ax1.set_xlabel("Timestep (Test Set Days)")
+ax1.set_ylabel("Price (USD)")
+ax1.legend(loc="upper right", frameon=True)
+ax1.grid(True, linestyle="--", alpha=0.5)
+
+# Right Subplot: Backtest Equity Curve
+ax2.plot(strategy_equity, label=f"Attention-BiLSTM Strategy ({strategy_total_return:+.1f}%)", color="mediumseagreen", linewidth=1.4)
+ax2.plot(buy_and_hold_equity, label=f"Buy & Hold ({bh_total_return:+.1f}%)", color="silver", linestyle=":", linewidth=1.2)
+ax2.set_title(f"Backtest Equity Curve (Sharpe: {sharpe_ratio:.2f})")
+ax2.set_xlabel("Trading Days")
+ax2.set_ylabel("Cumulative Multiple")
+ax2.legend(loc="upper left", frameon=True)
+ax2.grid(True, linestyle="--", alpha=0.5)
+
 plt.tight_layout()
-plt.savefig("results/attention_bilstm_results.png")
+plt.savefig("results/attention_bilstm_results.png", dpi=200)
 plt.close()
+print("Saved 2-panel comparison figure to results/attention_bilstm_results.png")
 
-# 10. Attention Heatmap Plot
+# 11. Attention Heatmap Plot
 att_weights = attention_extractor.predict(X_test).squeeze()
 sample_weights = att_weights[-15:]
 
@@ -200,7 +236,7 @@ plt.xlabel("Lookback Step (t-10 to t-1)")
 plt.ylabel("Test Day Index")
 plt.xticks(range(10), [f"t-{10-i}" for i in range(10)])
 plt.tight_layout()
-plt.savefig("results/attention_weights.png")
+plt.savefig("results/attention_weights.png", dpi=200)
 plt.close()
 
 print("All tasks completed successfully!")

@@ -1,7 +1,10 @@
 {
     "model": "Attention-BiLSTM",
-    "MAE": 316.94,
-    "RMSE": 389.04,
-    "MAPE": 2.61,
-    "directional_accuracy_pct": 51.58
+    "MAE": 309.61,
+    "RMSE": 379.74,
+    "MAPE": 2.57,
+    "directional_accuracy_pct": 49.47,
+    "strategy_return_pct": -7.98,
+    "buy_and_hold_return_pct": -17.52,
+    "sharpe_ratio": -0.53
 }

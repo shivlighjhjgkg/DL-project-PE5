@@ -8,3 +8,6 @@ data/cache/
 data/processed/sentiment.csv
 .keras/
 .matplotlib/
+*.docx
+*.pdf
+

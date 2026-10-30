@@ -28,7 +28,7 @@ All model implementations, architectural designs, experimental metrics, plots, a
 | **Phase 3: Attention Mechanism** | `src/train_attention_bilstm.py` | Assisted in implementing the custom Keras serializable `TemporalAttentionLayer` and extracting attention weights. | Prajika designed the Bidirectional LSTM + residual skip connection topology and verified temporal weights. |
 | **Phase 3: Unified Benchmarking** | `src/evaluate_all_models.py` | Assisted in assembling matplotlib grid subplots for Q-Q error distributions and failure case tables. | Verified all evaluation metrics across the test split, confirmed absence of lookahead bias, and calculated drawdown. |
 | **Phase 3: API & Dashboard** | `api/app.py` | Assisted in writing Chart.js frontend configuration and FastAPI Pydantic schema validation. | Integrated model checkpoints, tested REST endpoints (`/health`, `/predict`, `/api/backtest/data`), and verified responses. |
-| **Phase 3: Report Authoring** | `docs/final_report_part_c.md` | Assisted in formatting IEEE citations and standardizing section headers according to Part C guidelines. | Authored all technical descriptions, architectural justifications, error analysis narratives, and conclusion. |
+| **Phase 3: Academic Formatting** | Final IEEE Deliverables | Assisted in formatting IEEE citations and standardizing section headers according to syllabus guidelines. | Authored all technical descriptions, architectural justifications, error analysis narratives, and conclusion. |
 
 ---
 

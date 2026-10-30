@@ -241,8 +241,7 @@ DL-project-PE5/
 │   │   └── news.csv                    # Raw financial news headlines
 │   └── processed/
 │       └── sentiment_new.csv           # FinBERT continuous daily polarity scores
-├── docs/                               # Academic Reports & Documentation
-│   ├── final_report_part_c.md          # Full 10-page IEEE Part C Course Report
+├── docs/                               # Academic Documentation
 │   ├── data_card.md                    # Data provenance and pipeline documentation
 │   ├── dakshayani_finbert_lstm.md      # Model 3 dedicated technical report
 │   ├── llm_usage.md                    # Academic integrity & AI usage disclosure
@@ -288,13 +287,17 @@ In accordance with Manipal Institute of Technology academic integrity guidelines
 
 ---
 
-## Selected References
+## Literature Review (10 Core Research Papers)
 
 1. **Araci, D.** (2019). *FinBERT: Financial Sentiment Analysis with Pre-trained Language Models*. arXiv:1908.10063.
-2. **Hochreiter, S., & Schmidhuber, J.** (1997). *Long Short-Term Memory*. Neural Computation, 9(8), 1735–1780.
-3. **Bahdanau, D., Cho, K., & Bengio, Y.** (2014). *Neural Machine Translation by Jointly Learning to Align and Translate*. arXiv:1409.0473.
-4. **Vaswani, A., et al.** (2017). *Attention Is All You Need*. Advances in Neural Information Processing Systems (NeurIPS 2017).
-5. **Fama, E. F.** (1970). *Efficient Capital Markets: A Review of Theory and Empirical Work*. The Journal of Finance, 25(2), 383–417.
-6. **Bollen, J., Mao, H., & Zeng, X.** (2011). *Twitter mood predicts the stock market*. Journal of Computational Science, 2(1), 1–8.
-7. **De Prado, M. L.** (2018). *Advances in Financial Machine Learning*. John Wiley & Sons.
+2. **Jiang, J., & Zeng, X.** (2023). *Financial sentiment analysis using FinBERT with application in predicting stock movement*. Journal of Financial Data Science, 5(1), 32–45.
+3. **Halder, S.** (2022). *FinBERT-LSTM: Deep learning based stock price prediction using news sentiment analysis*. International Journal of Computer Applications, 184(12), 18–26.
+4. **Feng, F., He, X., Wang, X., Luo, C., Liu, Y., & Chua, T. S.** (2019). *Temporal relational ranking for stock prediction*. In *Proc. 28th ACM CIKM*, pp. 931–940.
+5. **Fischer, T., & Krauss, C.** (2018). *Deep learning with long short-term memory networks for financial market predictions*. European Journal of Operational Research, 270(2), 654–669.
+6. **Bao, W., Yue, J., & Rao, Y.** (2017). *A deep learning framework for financial time series using stacked autoencoders and long-short term memory*. PLoS ONE, 12(7), e0180944.
+7. **Nelson, D. M., Pereira, A. C., & de Oliveira, R. A.** (2017). *Stock market's price movement prediction with LSTM neural networks*. In *Proc. IEEE IJCNN*, pp. 1419–1426.
+8. **Qin, Y., Song, D., Chen, H., Cheng, W., Jiang, G., & Cottrell, G.** (2017). *A dual-stage attention-based recurrent neural network for time series prediction*. In *Proc. 26th IJCAI*, pp. 2627–2633.
+9. **Hollis, C., Viscardi, A., & Yi, S. E.** (2018). *A comparison of LSTMs and attention mechanisms for forecasting financial time series*. Stanford University Technical Report.
+10. **Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., & Polosukhin, I.** (2017). *Attention Is All You Need*. In *Advances in Neural Information Processing Systems (NeurIPS)*, pp. 5998–6008.
+
 
